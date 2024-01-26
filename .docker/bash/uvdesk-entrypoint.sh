@@ -12,8 +12,12 @@ declare -r COLOR_LIGHT_YELLOW='\033[0;33m'
 declare -r COLOR_BLUE='\033[0;34m'
 declare -r COLOR_LIGHT_BLUE='\033[1;34m'
 
+usermod -d /var/lib/mysql mysql
+
 # Restart apache & mysql server
-service apache2 restart && service mysql restart;
+service mysql restart;
+
+service apache2 restart;
 
 if [[ ! -z "$MYSQL_USER" && ! -z "$MYSQL_PASSWORD" && ! -z "$MYSQL_DATABASE" ]]; then
     if [ "$(mysqladmin ping)" == "mysqld is alive" ]; then
@@ -21,8 +25,15 @@ if [[ ! -z "$MYSQL_USER" && ! -z "$MYSQL_PASSWORD" && ! -z "$MYSQL_DATABASE" ]];
 
         # Create default database if not found and grant non-root user all privileges to that database
         # Note: Grant privileges will create user if it doesn't exists prior to mysql 8
-        mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE";
-        mysql -u root -e "GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* To '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'";
+        
+	# Create user and grant privileges, mysql 8+ syntax
+	mysql -u root -e "CREATE USER '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'";
+	mysql -u root -e "GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'localhost' WITH GRANT OPTION;"
+	mysql -u root -e "FLUSH PRIVILEGES;"
+	
+	# This does not work on mysql 8
+	#mysql -u root -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE";
+        #mysql -u root -e "GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* To '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD'";
 
         # Update root user credentials
         mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$MYSQL_ROOT_PASSWORD'";

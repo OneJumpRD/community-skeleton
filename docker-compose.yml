@@ -1,0 +1,13 @@
+version: '3'
+services:
+    uvdesk:
+        image: local/uvdesk:latest
+        build: .
+        tty: true
+        environment:
+            MYSQL_USER: uvdesk
+            MYSQL_PASSWORD: password321
+            MYSQL_ROOT_PASSWORD: password321
+            MYSQL_DATABASE: uvdesk
+        ports:
+            - 8080:80

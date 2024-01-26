@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 LABEL maintainer="akshay.kumar758@webkul.com"
 
 ENV GOSU_VERSION 1.11
@@ -76,6 +76,14 @@ RUN \
 
 # Change working directory to uvdesk source
 WORKDIR /var/www
+
+# Actually install the thing
+WORKDIR /var/www/uvdesk
+RUN composer update --no-interaction
+RUN composer install --no-interaction
+
+# Fix permissions
+RUN chown -R uvdesk:uvdesk /var/www/uvdesk
 
 ENTRYPOINT ["uvdesk-entrypoint.sh"]
 CMD ["/bin/bash"]
